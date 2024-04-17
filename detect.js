@@ -36,14 +36,39 @@ const nftData = fs.readdirSync(directory).map((file) => {
   const cycles = [];
 
   const buildCycle = (start, end) => {
-    const cycle = [start];
+    let cycle = [start];
     for (let cur = end; cur !== start; cur = pre[cur]) {
       cycle.push(cur);
     }
     cycle.push(start);
-    cycles.push(cycle.reverse());
+    // cycles.push(cycle.reverse());
     // need address
-    // cycles.push(cycle.reverse().map((node) => nodes[node]));
+    // filter this cycle:
+    // a -> transfer -> b -> transfer -> c -> transfer -> a
+    let isAllTransfer = true;
+    cycle.reverse();
+
+    let cycleStr = `${start}`;
+    cycle.map((node, i) => {
+      if (i > 0) {
+        const from = nodes[cycle[i - 1]];
+        const to = nodes[node];
+
+        const edge = graph[from].find((edge) => edge.to === to);
+        cycleStr += `->${edge.event}->${node}`;
+        if (edge.event !== "transfer") {
+          isAllTransfer = false;
+        }
+      }
+    });
+
+    if (!isAllTransfer) {
+      console.log(`[${file.split('.')[0]}] Cycle detected:${cycleStr}`);
+      cycles.push(cycle);
+    }
+    // else {
+    //   console.log(`Cycle is all transfer: ${cycle}, file: ${file}`);
+    // }
   };
 
   const dfs = (source) => {
@@ -54,7 +79,6 @@ const nftData = fs.readdirSync(directory).map((file) => {
         pre[target] = source;
         dfs(target);
       } else if (color[target] === 1) {
-        console.log(`Cycle detected between ${source} and ${target}`);
         buildCycle(target, source);
       }
     });
@@ -66,6 +90,4 @@ const nftData = fs.readdirSync(directory).map((file) => {
       dfs(i);
     }
   });
-  
-  console.log(`File: ${file}, m=${m}, n=${n},cycles=${cycles}`);
 });
