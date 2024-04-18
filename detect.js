@@ -24,11 +24,9 @@ const nftData = fs.readdirSync(directory).map((file) => {
   });
 
   // describe graph
-  const m = txs.length;
-  const n = Object.keys(graph).length;
+  // const m = txs.length;
   const nodes = Object.keys(graph);
-
-  assert(n === nodes.length, "n should be equal to the number of nodes");
+  const n = nodes.length;
 
   const pre = Array(n + 1).fill(-1);
   const color = Array(n + 1).fill(0);
@@ -41,8 +39,8 @@ const nftData = fs.readdirSync(directory).map((file) => {
       cycle.push(cur);
     }
     cycle.push(start);
-    // cycles.push(cycle.reverse());
-    // need address
+
+
     // filter this cycle:
     // a -> transfer -> b -> transfer -> c -> transfer -> a
     let isAllTransfer = true;
@@ -66,9 +64,6 @@ const nftData = fs.readdirSync(directory).map((file) => {
       console.log(`[${file.split('.')[0]}] Cycle detected:${cycleStr}`);
       cycles.push(cycle);
     }
-    // else {
-    //   console.log(`Cycle is all transfer: ${cycle}, file: ${file}`);
-    // }
   };
 
   const dfs = (source) => {
